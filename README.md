@@ -1,16 +1,14 @@
 [![Tests](../../actions/workflows/tests-13-sprint.yml/badge.svg)](../../actions/workflows/tests-13-sprint.yml) [![Tests](../../actions/workflows/tests-14-sprint.yml/badge.svg)](../../actions/workflows/tests-14-sprint.yml)
-# Проект Mesto фронтенд + бэкенд
+## Mesto: фото-лента [backend]
 
+#### :gear: О чем проект
+**Этот проект** - одна из домашних работ по курсу ["Веб-разработчик"](https://practicum.yandex.ru/web/) от сервиса Яндекс Практикум. В рамках проекта будет создан бэкенд для веб-сервиса Mesto.
 
-## Директории
+#### :gear: Запуск проекта
+`npm run start` - запускает сервер.
+`npm run dev` - запускает сервер с hot-reload.
 
-`/routes` — папка с файлами роутера  
-`/controllers` — папка с файлами контроллеров пользователя и карточки   
-`/models` — папка с файлами описания схем пользователя и карточки  
-  
-Остальные директории вспомогательные, создаются при необходимости разработчиком
+#### :gear: Технологии
+Проект написан на фреймворке Express. Используется нереляционная база данных MongoDB.
 
-## Запуск проекта
-
-`npm run start` — запускает сервер   
-`npm run dev` — запускает сервер с hot-reload
+Стек: JavaScript (Express), MongoDB (Mongoose)
