@@ -12,6 +12,10 @@ module.exports.getUser = (req, res) => {
     .orFail()
     .then((user) => res.send({ data: user }))
     .catch((err) => {
+      if (err instanceof CastError) {
+        res.status(400).send({ message: `Передан некорректный ID пользователя: ${req.params.userId}.` });
+        return;
+      }
       if (err instanceof DocumentNotFoundError) {
         res.status(404).send({ message: `Пользователь с ID ${req.params.userId} не найден.` });
         return;
