@@ -1,10 +1,11 @@
 const { CastError, ValidationError, DocumentNotFoundError } = require('mongoose').Error;
+const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../utils/constants');
 const User = require('../models/user');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(500).send({ message: 'Запрос не может быть обработан.' }));
+    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' }));
 };
 
 module.exports.getUser = (req, res) => {
@@ -13,14 +14,14 @@ module.exports.getUser = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err instanceof CastError) {
-        res.status(400).send({ message: `Передан некорректный ID пользователя: ${req.params.userId}.` });
+        res.status(BAD_REQUEST).send({ message: `Передан некорректный ID пользователя: ${req.params.userId}.` });
         return;
       }
       if (err instanceof DocumentNotFoundError) {
-        res.status(404).send({ message: `Пользователь с ID ${req.params.userId} не найден.` });
+        res.status(NOT_FOUND).send({ message: `Пользователь с ID ${req.params.userId} не найден.` });
         return;
       }
-      res.status(500).send({ message: 'Запрос не может быть обработан.' });
+      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
     });
 };
 
@@ -31,10 +32,10 @@ module.exports.createUser = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(400).send({ message: 'В метод создания пользователя переданы некоректные данные.' });
+        res.status(BAD_REQUEST).send({ message: 'В метод создания пользователя переданы некоректные данные.' });
         return;
       }
-      res.status(500).send({ message: 'Запрос не может быть обработан.' });
+      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
     });
 };
 
@@ -47,14 +48,14 @@ module.exports.updateUserInfo = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err instanceof DocumentNotFoundError) {
-        res.status(404).send({ message: `Пользователь с ID ${userId} не найден.` });
+        res.status(NOT_FOUND).send({ message: `Пользователь с ID ${userId} не найден.` });
         return;
       }
       if (err instanceof ValidationError || err instanceof CastError) {
-        res.status(400).send({ message: 'В метод обновления профиля пользователя переданы некоректные данные.' });
+        res.status(BAD_REQUEST).send({ message: 'В метод обновления профиля пользователя переданы некоректные данные.' });
         return;
       }
-      res.status(500).send({ message: 'Запрос не может быть обработан.' });
+      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
     });
 };
 
@@ -67,13 +68,13 @@ module.exports.updateUserAvatar = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err instanceof DocumentNotFoundError) {
-        res.status(404).send({ message: `Пользователь с ID ${userId} не найден.` });
+        res.status(NOT_FOUND).send({ message: `Пользователь с ID ${userId} не найден.` });
         return;
       }
       if (err instanceof ValidationError || err instanceof CastError) {
-        res.status(400).send({ message: 'В метод обновления аватара пользователя переданы некоректные данные.' });
+        res.status(BAD_REQUEST).send({ message: 'В метод обновления аватара пользователя переданы некоректные данные.' });
         return;
       }
-      res.status(500).send({ message: 'Запрос не может быть обработан.' });
+      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
     });
 };

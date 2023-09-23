@@ -1,10 +1,11 @@
 const { CastError, ValidationError, DocumentNotFoundError } = require('mongoose').Error;
+const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../utils/constants');
 const Card = require('../models/card');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(500).send({ message: 'Запрос не может быть обработан.' }));
+    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' }));
 };
 
 module.exports.createCard = (req, res) => {
@@ -15,10 +16,10 @@ module.exports.createCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(400).send({ message: 'В метод создания карточки переданы некоректные данные.' });
+        res.status(BAD_REQUEST).send({ message: 'В метод создания карточки переданы некоректные данные.' });
         return;
       }
-      res.status(500).send({ message: err.name });
+      res.status(INTERNAL_SERVER_ERROR).send({ message: err.name });
     });
 };
 
@@ -28,14 +29,14 @@ module.exports.removeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof CastError) {
-        res.status(400).send({ message: `Передан некорректный ID карточки: ${req.params.cardId}.` });
+        res.status(BAD_REQUEST).send({ message: `Передан некорректный ID карточки: ${req.params.cardId}.` });
         return;
       }
       if (err instanceof DocumentNotFoundError) {
-        res.status(404).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
+        res.status(NOT_FOUND).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
         return;
       }
-      res.status(500).send({ message: 'Запрос не может быть обработан.' });
+      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
     });
 };
 
@@ -51,14 +52,14 @@ module.exports.likeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof DocumentNotFoundError) {
-        res.status(404).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
+        res.status(NOT_FOUND).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
         return;
       }
       if (err instanceof ValidationError || err instanceof CastError) {
-        res.status(400).send({ message: 'В метод постановки лайка на карточку переданы некоректные данные.' });
+        res.status(BAD_REQUEST).send({ message: 'В метод постановки лайка на карточку переданы некоректные данные.' });
         return;
       }
-      res.status(500).send({ message: 'Запрос не может быть обработан.' });
+      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
     });
 };
 
@@ -74,13 +75,13 @@ module.exports.dislikeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof DocumentNotFoundError) {
-        res.status(404).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
+        res.status(NOT_FOUND).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
         return;
       }
       if (err instanceof ValidationError || err instanceof CastError) {
-        res.status(400).send({ message: 'В метод снятия лайка с карточки переданы некоректные данные.' });
+        res.status(BAD_REQUEST).send({ message: 'В метод снятия лайка с карточки переданы некоректные данные.' });
         return;
       }
-      res.status(500).send({ message: 'Запрос не может быть обработан.' });
+      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
     });
 };
