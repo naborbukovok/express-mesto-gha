@@ -1,6 +1,12 @@
 const { CastError, ValidationError, DocumentNotFoundError } = require('mongoose').Error;
-const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../utils/constants');
+const {
+  CREATED,
+  BAD_REQUEST,
+  NOT_FOUND,
+  INTERNAL_SERVER_ERROR,
+} = require('../utils/constants');
 const User = require('../models/user');
+const { parseValidationErr } = require('../utils/utils');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -29,10 +35,10 @@ module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.status(CREATED).send({ data: user }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(BAD_REQUEST).send({ message: 'В метод создания пользователя переданы некоректные данные.' });
+        res.status(BAD_REQUEST).send({ message: `В метод создания пользователя переданы некоректные данные: ${parseValidationErr(err)}.` });
         return;
       }
       res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
@@ -51,7 +57,11 @@ module.exports.updateUserInfo = (req, res) => {
         res.status(NOT_FOUND).send({ message: `Пользователь с ID ${userId} не найден.` });
         return;
       }
-      if (err instanceof ValidationError || err instanceof CastError) {
+      if (err instanceof ValidationError) {
+        res.status(BAD_REQUEST).send({ message: `В метод обновления профиля пользователя переданы некоректные данные: ${parseValidationErr(err)}.` });
+        return;
+      }
+      if (err instanceof CastError) {
         res.status(BAD_REQUEST).send({ message: 'В метод обновления профиля пользователя переданы некоректные данные.' });
         return;
       }
@@ -71,7 +81,11 @@ module.exports.updateUserAvatar = (req, res) => {
         res.status(NOT_FOUND).send({ message: `Пользователь с ID ${userId} не найден.` });
         return;
       }
-      if (err instanceof ValidationError || err instanceof CastError) {
+      if (err instanceof ValidationError) {
+        res.status(BAD_REQUEST).send({ message: `В метод обновления аватара пользователя переданы некоректные данные: ${parseValidationErr(err)}.` });
+        return;
+      }
+      if (err instanceof CastError) {
         res.status(BAD_REQUEST).send({ message: 'В метод обновления аватара пользователя переданы некоректные данные.' });
         return;
       }

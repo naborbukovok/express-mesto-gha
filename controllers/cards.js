@@ -1,6 +1,12 @@
 const { CastError, ValidationError, DocumentNotFoundError } = require('mongoose').Error;
-const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../utils/constants');
+const {
+  CREATED,
+  BAD_REQUEST,
+  NOT_FOUND,
+  INTERNAL_SERVER_ERROR,
+} = require('../utils/constants');
 const Card = require('../models/card');
+const { parseValidationErr } = require('../utils/utils');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -13,10 +19,10 @@ module.exports.createCard = (req, res) => {
   const userId = req.user._id;
 
   Card.create({ name, link, owner: userId })
-    .then((card) => res.send({ data: card }))
+    .then((card) => res.status(CREATED).send({ data: card }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(BAD_REQUEST).send({ message: 'В метод создания карточки переданы некоректные данные.' });
+        res.status(BAD_REQUEST).send({ message: `В метод создания карточки переданы некоректные данные: ${parseValidationErr(err)}.` });
         return;
       }
       res.status(INTERNAL_SERVER_ERROR).send({ message: err.name });
@@ -55,7 +61,11 @@ module.exports.likeCard = (req, res) => {
         res.status(NOT_FOUND).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
         return;
       }
-      if (err instanceof ValidationError || err instanceof CastError) {
+      if (err instanceof ValidationError) {
+        res.status(BAD_REQUEST).send({ message: `В метод постановки лайка на карточку переданы некоректные данные: ${parseValidationErr(err)}.` });
+        return;
+      }
+      if (err instanceof CastError) {
         res.status(BAD_REQUEST).send({ message: 'В метод постановки лайка на карточку переданы некоректные данные.' });
         return;
       }
@@ -78,7 +88,11 @@ module.exports.dislikeCard = (req, res) => {
         res.status(NOT_FOUND).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
         return;
       }
-      if (err instanceof ValidationError || err instanceof CastError) {
+      if (err instanceof ValidationError) {
+        res.status(BAD_REQUEST).send({ message: `В метод снятия лайка с карточки переданы некоректные данные: ${parseValidationErr(err)}.` });
+        return;
+      }
+      if (err instanceof CastError) {
         res.status(BAD_REQUEST).send({ message: 'В метод снятия лайка с карточки переданы некоректные данные.' });
         return;
       }
