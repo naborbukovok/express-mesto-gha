@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
   },
   about: {
     type: String,
-    minlength: [2, 'минимальная длина about name - 2 символа'],
+    minlength: [2, 'минимальная длина поля about - 2 символа'],
     maxlength: [30, 'максимальная длина поля about - 30 символов'],
     required: [true, 'поле about должно быть заполнено'],
   },
