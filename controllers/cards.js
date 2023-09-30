@@ -30,9 +30,21 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.removeCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  const userId = req.user._id;
+
+  Card.findById(req.params.cardId)
     .orFail()
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (!card.owner.equals(userId)) {
+        return Promise.reject(new Error(''));
+      }
+
+      Card.deleteOne(card)
+        .then(res.send({ data: card }))
+        .catch((err) => {
+          next(err);
+        });
+    })
     .catch((err) => {
       if (err instanceof CastError) {
         res.status(BAD_REQUEST).send({ message: `Передан некорректный ID карточки: ${req.params.cardId}.` });
