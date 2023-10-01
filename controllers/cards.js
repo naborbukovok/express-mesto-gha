@@ -1,10 +1,8 @@
-const mongoose = require('mongoose');
 const { CREATED } = require('../utils/constants');
 const Card = require('../models/card');
 
 const NotFoundError = require('../errors/not-found-error');
-const UnauthorizedError = require('../errors/unauthorized-error');
-const BadRequestError = require('../errors/bad-request-error');
+const ForbiddenError = require('../errors/forbidden-error');
 
 // Получение всех карточек.
 module.exports.getCards = (req, res, next) => {
@@ -28,10 +26,6 @@ module.exports.removeCard = (req, res, next) => {
   const { cardId } = req.params;
   const currentUserId = req.user._id;
 
-  if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    throw new BadRequestError(`Передан некорректный ID карточки: ${cardId}.`);
-  }
-
   Card.findById(cardId)
     .then((card) => {
       if (!card) {
@@ -39,7 +33,7 @@ module.exports.removeCard = (req, res, next) => {
       }
 
       if (!card.owner.equals(currentUserId)) {
-        throw new UnauthorizedError('Карточка принадлежит другому пользователю.');
+        throw new ForbiddenError(`Карточка с ID ${cardId} принадлежит другому пользователю.`);
       }
 
       Card.deleteOne(card)
@@ -53,10 +47,6 @@ module.exports.removeCard = (req, res, next) => {
 module.exports.likeCard = (req, res, next) => {
   const { cardId } = req.params;
   const currentUserId = req.user._id;
-
-  if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    throw new BadRequestError(`Передан некорректный ID карточки: ${cardId}.`);
-  }
 
   Card.findByIdAndUpdate(
     cardId,
@@ -76,10 +66,6 @@ module.exports.likeCard = (req, res, next) => {
 module.exports.dislikeCard = (req, res, next) => {
   const { cardId } = req.params;
   const currentUserId = req.user._id;
-
-  if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    throw new BadRequestError(`Передан некорректный ID карточки: ${cardId}.`);
-  }
 
   Card.findByIdAndUpdate(
     cardId,

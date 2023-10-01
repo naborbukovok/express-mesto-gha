@@ -7,12 +7,17 @@ const {
   updateUserInfo,
   updateUserAvatar,
 } = require('../controllers/users');
+const { validateURL, validateID } = require('../utils/validators');
 
 router.get('/', getUsers);
 
 router.get('/me', getCurrentUser);
 
-router.get('/:userId', getUser);
+router.get('/:userId', celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().custom(validateID),
+  }),
+}), getUser);
 
 router.patch('/me', celebrate({
   body: Joi.object().keys({
@@ -23,7 +28,7 @@ router.patch('/me', celebrate({
 
 router.patch('/me/avatar', celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string(),
+    avatar: Joi.string().custom(validateURL),
   }),
 }), updateUserAvatar);
 

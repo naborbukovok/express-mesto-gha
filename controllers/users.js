@@ -7,7 +7,6 @@ const { SECRET_KEY, CREATED } = require('../utils/constants');
 
 const User = require('../models/user');
 
-const BadRequestError = require('../errors/bad-request-error');
 const ConflictError = require('../errors/conflict-error');
 const NotFoundError = require('../errors/not-found-error');
 
@@ -36,10 +35,6 @@ module.exports.getCurrentUser = (req, res, next) => {
 // Получение пользователя по ID.
 module.exports.getUser = (req, res, next) => {
   const { userId } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    throw new BadRequestError(`Передан некорректный ID пользователя: ${userId}.`);
-  }
 
   User.findById(userId)
     .then((user) => {
@@ -107,7 +102,14 @@ module.exports.createUser = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((user) => res.status(CREATED).send({ data: user }))
+    .then((user) => res.status(CREATED).send({
+      data: {
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      },
+    }))
     .catch((err) => {
       if (err.code === 11000) {
         next(new ConflictError('Пользователь с такой почтой уже существует.'));
