@@ -1,113 +1,96 @@
-const { CastError, ValidationError, DocumentNotFoundError } = require('mongoose').Error;
-const {
-  CREATED,
-  BAD_REQUEST,
-  NOT_FOUND,
-  INTERNAL_SERVER_ERROR,
-} = require('../utils/constants');
+const mongoose = require('mongoose');
+const { CREATED } = require('../utils/constants');
 const Card = require('../models/card');
-const { parseValidationErr } = require('../utils/utils');
 
-module.exports.getCards = (req, res) => {
+const NotFoundError = require('../errors/not-found-error');
+const UnauthorizedError = require('../errors/unauthorized-error');
+const BadRequestError = require('../errors/bad-request-error');
+
+// Получение всех карточек.
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' }));
+    .catch(next);
 };
 
-module.exports.createCard = (req, res) => {
+// Создание новой карточки.
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
-  const userId = req.user._id;
+  const currentUserId = req.user._id;
 
-  Card.create({ name, link, owner: userId })
+  Card.create({ name, link, owner: currentUserId })
     .then((card) => res.status(CREATED).send({ data: card }))
-    .catch((err) => {
-      if (err instanceof ValidationError) {
-        res.status(BAD_REQUEST).send({ message: `В метод создания карточки переданы некоректные данные: ${parseValidationErr(err)}.` });
-        return;
-      }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: err.name });
-    });
+    .catch(next);
 };
 
-module.exports.removeCard = (req, res) => {
-  const userId = req.user._id;
+// Удаление карточки.
+module.exports.removeCard = (req, res, next) => {
+  const { cardId } = req.params;
+  const currentUserId = req.user._id;
 
-  Card.findById(req.params.cardId)
-    .orFail()
+  if (!mongoose.Types.ObjectId.isValid(cardId)) {
+    throw new BadRequestError(`Передан некорректный ID карточки: ${cardId}.`);
+  }
+
+  Card.findById(cardId)
     .then((card) => {
-      if (!card.owner.equals(userId)) {
-        return Promise.reject(new Error(''));
+      if (!card) {
+        throw new NotFoundError(`Карточка с ID ${cardId} не найдена.`);
+      }
+
+      if (!card.owner.equals(currentUserId)) {
+        throw new UnauthorizedError('Карточка принадлежит другому пользователю.');
       }
 
       Card.deleteOne(card)
         .then(res.send({ data: card }))
-        .catch((err) => {
-          next(err);
-        });
+        .catch(next);
     })
-    .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(BAD_REQUEST).send({ message: `Передан некорректный ID карточки: ${req.params.cardId}.` });
-        return;
-      }
-      if (err instanceof DocumentNotFoundError) {
-        res.status(NOT_FOUND).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
-        return;
-      }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
-    });
+    .catch(next);
 };
 
-module.exports.likeCard = (req, res) => {
-  const userId = req.user._id;
+// Постановка лайка на карточку.
+module.exports.likeCard = (req, res, next) => {
+  const { cardId } = req.params;
+  const currentUserId = req.user._id;
+
+  if (!mongoose.Types.ObjectId.isValid(cardId)) {
+    throw new BadRequestError(`Передан некорректный ID карточки: ${cardId}.`);
+  }
 
   Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: userId } },
+    cardId,
+    { $addToSet: { likes: currentUserId } },
     { new: true, runValidators: true },
   )
-    .orFail()
-    .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      if (err instanceof DocumentNotFoundError) {
-        res.status(NOT_FOUND).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
-        return;
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError(`Карточка с ID ${cardId} не найдена.`);
       }
-      if (err instanceof ValidationError) {
-        res.status(BAD_REQUEST).send({ message: `В метод постановки лайка на карточку переданы некоректные данные: ${parseValidationErr(err)}.` });
-        return;
-      }
-      if (err instanceof CastError) {
-        res.status(BAD_REQUEST).send({ message: 'В метод постановки лайка на карточку переданы некоректные данные.' });
-        return;
-      }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
-    });
+      res.send({ data: card });
+    })
+    .catch(next);
 };
 
-module.exports.dislikeCard = (req, res) => {
-  const userId = req.user._id;
+// Снятие лайка с карточки.
+module.exports.dislikeCard = (req, res, next) => {
+  const { cardId } = req.params;
+  const currentUserId = req.user._id;
+
+  if (!mongoose.Types.ObjectId.isValid(cardId)) {
+    throw new BadRequestError(`Передан некорректный ID карточки: ${cardId}.`);
+  }
 
   Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: userId } },
+    cardId,
+    { $pull: { likes: currentUserId } },
     { new: true, runValidators: true },
   )
-    .orFail()
-    .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      if (err instanceof DocumentNotFoundError) {
-        res.status(NOT_FOUND).send({ message: `Карточка с ID ${req.params.cardId} не найдена.` });
-        return;
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError(`Карточка с ID ${cardId} не найдена.`);
       }
-      if (err instanceof ValidationError) {
-        res.status(BAD_REQUEST).send({ message: `В метод снятия лайка с карточки переданы некоректные данные: ${parseValidationErr(err)}.` });
-        return;
-      }
-      if (err instanceof CastError) {
-        res.status(BAD_REQUEST).send({ message: 'В метод снятия лайка с карточки переданы некоректные данные.' });
-        return;
-      }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Запрос не может быть обработан.' });
-    });
+      res.send({ data: card });
+    })
+    .catch(next);
 };
