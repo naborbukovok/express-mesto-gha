@@ -1,6 +1,5 @@
 const { CREATED } = require('../utils/constants');
 const Card = require('../models/card');
-
 const NotFoundError = require('../errors/not-found-error');
 const ForbiddenError = require('../errors/forbidden-error');
 

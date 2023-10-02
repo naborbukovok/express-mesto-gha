@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const isURL = require('validator/lib/isURL');
+
 const BadRequestError = require('../errors/bad-request-error');
 
 module.exports.validateURL = (string) => {

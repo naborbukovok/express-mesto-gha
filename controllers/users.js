@@ -2,9 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const { SECRET_KEY, CREATED } = require('../utils/constants');
-
 const User = require('../models/user');
-
 const ConflictError = require('../errors/conflict-error');
 const NotFoundError = require('../errors/not-found-error');
 
@@ -110,8 +108,9 @@ module.exports.createUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.code === 11000) {
-        throw new ConflictError('Пользователь с такой почтой уже существует.');
+        next(new ConflictError('Пользователь с такой почтой уже существует.'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
