@@ -7,21 +7,20 @@ const UnauthorizedError = require('../errors/unauthorized-error');
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    minlength: [2, 'минимальная длина поля name - 2 символа'],
-    maxlength: [30, 'максимальная длина поля name - 30 символов'],
+    minlength: 2,
+    maxlength: 30,
     default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
-    minlength: [2, 'минимальная длина поля about - 2 символа'],
-    maxlength: [30, 'максимальная длина поля about - 30 символов'],
+    minlength: 2,
+    maxlength: 30,
     default: 'Исследователь',
   },
   avatar: {
     type: String,
     validate: {
       validator: (avatar) => isURL(avatar),
-      message: 'в поле avatar необходимо ввести ссылку',
     },
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
   },
@@ -29,15 +28,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator: (email) => isEmail(email),
-      message: 'в поле email необходимо ввести электронную почту',
     },
     unique: true,
-    required: [true, 'поле email должно быть заполнено'],
+    required: true,
   },
   password: {
     type: String,
-    minlength: [8, 'минимальная длина поля password - 8 символов'],
-    required: [true, 'поле password должно быть заполнено'],
+    minlength: 8,
+    required: true,
     select: false,
   },
 }, { versionKey: false });
